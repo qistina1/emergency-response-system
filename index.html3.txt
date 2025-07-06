@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RescueLink Emergency System</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>🚨 RescueLink</h1>
+        
+        <div class="card">
+            <h2>Your Emergency Profile</h2>
+            <form id="emergencyForm">
+                <input type="text" id="name" placeholder="Full Name*" required>
+                <select id="bloodType" required>
+                    <option value="">Select Blood Type*</option>
+                    <option value="A+">A+</option>
+                    <option value="A-">A-</option>
+                    <option value="B+">B+</option>
+                    <option value="B-">B-</option>
+                    <option value="AB+">AB+</option>
+                    <option value="AB-">AB-</option>
+                    <option value="O+">O+</option>
+                    <option value="O-">O-</option>
+                </select>
+                <input type="text" id="allergies" placeholder="Allergies">
+                <input type="text" id="conditions" placeholder="Medical Conditions">
+                <input type="tel" id="emergencyContact" placeholder="Emergency Contact*" required>
+                <button type="submit">Save Profile</button>
+            </form>
+            <div id="profileStatus" class="status hidden"></div>
+        </div>
+
+        <div class="card">
+            <h2>Emergency Alert</h2>
+            <button id="emergencyBtn">🚨 SEND EMERGENCY ALERT</button>
+            <p id="motionStatus">Shake detection: OFF</p>
+            <div id="alertStatus" class="status hidden"></div>
+        </div>
+
+        <div class="card">
+            <h2>Emergency QR Code</h2>
+            <div id="qrcode"></div>
+            <p>Print and stick on your phone/wallet</p>
+        </div>
+    </div>
+
+    <script src="https://cdn.rawgit.com/davidshimjs/qrcodejs/gh-pages/qrcode.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

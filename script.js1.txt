@@ -1,0 +1,115 @@
+// DOM Elements
+const emergencyForm = document.getElementById('emergencyForm');
+const emergencyBtn = document.getElementById('emergencyBtn');
+const profileStatus = document.getElementById('profileStatus');
+const alertStatus = document.getElementById('alertStatus');
+const motionStatus = document.getElementById('motionStatus');
+
+// 1. Save Emergency Profile
+emergencyForm.addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const profile = {
+        name: document.getElementById('name').value,
+        bloodType: document.getElementById('bloodType').value,
+        allergies: document.getElementById('allergies').value || 'None',
+        conditions: document.getElementById('conditions').value || 'None',
+        contact: document.getElementById('emergencyContact').value,
+        lastUpdated: new Date().toLocaleString()
+    };
+    
+    localStorage.setItem('emergencyProfile', JSON.stringify(profile));
+    showStatus(profileStatus, 'Profile saved successfully!', 'success');
+    generateQRCode();
+});
+
+// 2. Generate QR Code
+function generateQRCode() {
+    const profile = JSON.parse(localStorage.getItem('emergencyProfile'));
+    if (!profile) return;
+    
+    document.getElementById('qrcode').innerHTML = '';
+    
+    const qrText = `EMERGENCY CONTACT\n\nName: ${profile.name}\nBlood: ${profile.bloodType}\nAllergies: ${profile.allergies}\nConditions: ${profile.conditions}\nContact: ${profile.contact}\n\nLast Updated: ${profile.lastUpdated}`;
+    
+    new QRCode(document.getElementById('qrcode'), {
+        text: qrText,
+        width: 200,
+        height: 200,
+        colorDark: "#e74c3c",
+        colorLight: "#ffffff"
+    });
+}
+
+// 3. Emergency Alert
+emergencyBtn.addEventListener('click', sendEmergencyAlert);
+
+// 4. Shake Detection
+let shakeDetectionOn = false;
+const SHAKE_THRESHOLD = 15;
+
+function startShakeDetection() {
+    if (!shakeDetectionOn && window.DeviceMotionEvent) {
+        window.addEventListener('devicemotion', handleShake);
+        motionStatus.textContent = 'Shake detection: ON (shake to test)';
+        shakeDetectionOn = true;
+    }
+}
+
+function handleShake(event) {
+    const acceleration = event.accelerationIncludingGravity;
+    const force = Math.sqrt(
+        acceleration.x ** 2 + 
+        acceleration.y ** 2 + 
+        acceleration.z ** 2
+    );
+    
+    if (force > SHAKE_THRESHOLD) {
+        sendEmergencyAlert();
+        window.removeEventListener('devicemotion', handleShake);
+        setTimeout(() => {
+            window.addEventListener('devicemotion', handleShake);
+        }, 3000);
+    }
+}
+
+// 5. Send Emergency Alert
+function sendEmergencyAlert() {
+    const profile = JSON.parse(localStorage.getItem('emergencyProfile')) || {};
+    
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            position => {
+                const location = {
+                    lat: position.coords.latitude.toFixed(6),
+                    lng: position.coords.longitude.toFixed(6)
+                };
+                
+                const message = `EMERGENCY ALERT\n\nName: ${profile.name || 'Unknown'}\nLocation: ${location.lat}, ${location.lng}\nGoogle Maps: https://maps.google.com?q=${location.lat},${location.lng}`;
+                
+                showStatus(alertStatus, 'Emergency alert sent with location!', 'success');
+                console.log(`ALERT: ${message}\nContacting: ${profile.contact || '911'}`);
+            },
+            error => {
+                showStatus(alertStatus, 'Emergency triggered! (Location blocked)', 'error');
+                console.log('Emergency alert without location');
+            }
+        );
+    } else {
+        showStatus(alertStatus, 'Emergency triggered!', 'success');
+    }
+}
+
+// Helper Functions
+function showStatus(element, message, type) {
+    element.textContent = message;
+    element.className = `status ${type}`;
+    element.classList.remove('hidden');
+    setTimeout(() => element.classList.add('hidden'), 5000);
+}
+
+// Initialize
+if (localStorage.getItem('emergencyProfile')) {
+    generateQRCode();
+}
+startShakeDetection();
